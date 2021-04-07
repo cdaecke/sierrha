@@ -24,6 +24,7 @@ use TYPO3\CMS\Core\Http\HtmlResponse;
 use TYPO3\CMS\Core\Http\ImmediateResponseException;
 use TYPO3\CMS\Core\LinkHandling\LinkService;
 use TYPO3\CMS\Core\Localization\LanguageService;
+use TYPO3\CMS\Core\Localization\LanguageServiceFactory;
 use TYPO3\CMS\Core\Messaging\AbstractMessage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Site\SiteFinder;
@@ -58,6 +59,11 @@ abstract class BaseHandler implements PageErrorHandlerInterface
      */
     protected $pageUid = 0;
 
+    /**
+     * @var string
+     */
+    protected $typo3Language = 'default';
+
 	/**
 	 * @param int $statusCode
 	 * @param array $configuration
@@ -89,16 +95,17 @@ abstract class BaseHandler implements PageErrorHandlerInterface
         if ($urlParams['type'] !== 'page' && $urlParams['type'] !== 'url') {
             throw new \InvalidArgumentException('The error handler accepts only TYPO3 links of type "page" or "url"', 1547651754);
         }
+
+        /* @var $language SiteLanguage */
+        $language = $request->getAttribute('language');
+        $this->typo3Language = $language->getTypo3Language();
+
         if ($urlParams['type'] === 'url') {
-            /* @var $siteLanguage SiteLanguage */
-            $siteLanguage = $request->getAttribute('language');
-            $resolvedUrl = str_replace(
-                ['###ISO_639-1###', '###IETF_BCP47'],
-                [$siteLanguage->getTwoLetterIsoCode(), $siteLanguage->getHreflang()],
+            return str_replace(
+                ['###ISO_639-1###', '###IETF_BCP47###'],
+                [$language->getTwoLetterIsoCode(), $language->getHreflang()],
                 $urlParams['url']
             );
-
-            return $resolvedUrl;
         }
 
         $this->pageUid = (int)$urlParams['pageuid'];
@@ -143,6 +150,7 @@ abstract class BaseHandler implements PageErrorHandlerInterface
             }
         }
 
+        $content = '';
         if ($content === '') {
             $languageService = $this->getLanguageService();
             $content = GeneralUtility::makeInstance(ErrorPageController::class)->errorAction(
@@ -193,6 +201,17 @@ abstract class BaseHandler implements PageErrorHandlerInterface
      */
     protected function getLanguageService(): LanguageService
     {
-        return $GLOBALS['LANG'] ?? GeneralUtility::makeInstance(LanguageService::class);
+        static $languageService = null;
+
+        if (!$languageService) {
+            if (isset($GLOBALS['LANG'])) {
+                $languageService = $GLOBALS['LANG'];
+            } else {
+                $languageService = GeneralUtility::makeInstance(LanguageServiceFactory::class)
+                    ->create($this->typo3Language);
+            }
+        }
+
+        return $languageService;
     }
 }
