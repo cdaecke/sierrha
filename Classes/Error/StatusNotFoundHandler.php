@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Plan2net\Sierrha\Error;
 
 /*
- * Copyright 2019 plan2net GmbH
+ * Copyright 2019-2021 plan2net GmbH
  * 
  * It is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License, either version 2
@@ -14,17 +14,16 @@ namespace Plan2net\Sierrha\Error;
  * LICENSE.txt file that was distributed with this source code.
  */
 
-use Plan2net\Sierrha\Utility\Url;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Http\HtmlResponse;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * An error handler that shows content from a page expect for web resource requests (eg CSS).
  */
 class StatusNotFoundHandler extends BaseHandler
 {
+    const KEY_PREFIX = 'pageNotFound';
 
     /**
      * @param ServerRequestInterface $request
@@ -52,8 +51,7 @@ class StatusNotFoundHandler extends BaseHandler
                 $content = $this->getLanguageService()->sL('LLL:EXT:sierrha/Resources/Private/Language/locallang.xlf:resourceNotFound');
             } else {
                 $resolvedUrl = $this->resolveUrl($request, $this->handlerConfiguration['tx_sierrha_notFoundContentSource']);
-                $urlUtility = GeneralUtility::makeInstance(Url::class);
-                $content = $urlUtility->fetchWithFallback($resolvedUrl, 'pageNotFoundTitle', 'pageNotFoundDetails');
+                $content = $this->fetchUrl($resolvedUrl);
             }
         } catch (\Exception $e) {
             $content = $this->handleInternalFailure($message, $e);

@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Plan2net\Sierrha\Error;
 
 /*
- * Copyright 2019 plan2net GmbH
+ * Copyright 2019-2021 plan2net GmbH
  * 
  * It is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License, either version 2
@@ -14,7 +14,9 @@ namespace Plan2net\Sierrha\Error;
  * LICENSE.txt file that was distributed with this source code.
  */
 
+use Plan2net\Sierrha\Utility\Url;
 use Psr\Http\Message\ServerRequestInterface;
+use TYPO3\CMS\Core\Cache\CacheManager;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Controller\ErrorPageController;
 use TYPO3\CMS\Core\Error\PageErrorHandler\PageErrorHandlerInterface;
@@ -33,6 +35,8 @@ use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
  */
 abstract class BaseHandler implements PageErrorHandlerInterface
 {
+    const CACHE_IDENTIFIER = 'pages';
+    const KEY_PREFIX = '';
 
     /**
      * @var int
@@ -48,6 +52,11 @@ abstract class BaseHandler implements PageErrorHandlerInterface
      * @var array
      */
     protected $extensionConfiguration;
+
+    /**
+     * @var int
+     */
+    protected $pageUid = 0;
 
 	/**
 	 * @param int $statusCode
@@ -92,6 +101,8 @@ abstract class BaseHandler implements PageErrorHandlerInterface
             return $resolvedUrl;
         }
 
+        $this->pageUid = (int)$urlParams['pageuid'];
+
         /* @var $site Site */
         $site = $request->getAttribute('site', null);
         if (!$site instanceof Site) {
@@ -102,6 +113,45 @@ abstract class BaseHandler implements PageErrorHandlerInterface
             (int)$urlParams['pageuid'],
             ['_language' => $request->getAttribute('language', null)]
         );
+    }
+
+    /**
+     * Fetches content of URL, returns fallback on error
+     *
+     * @param string $url
+     * @return string
+     */
+    public function fetchUrl(string $url): string
+    {
+        $cache = GeneralUtility::makeInstance(CacheManager::class)->getCache(static::CACHE_IDENTIFIER);
+        $cacheIdentifier = 'sierrha_' . static::KEY_PREFIX . '_' . md5($url);
+        $cacheContent = $cache->get($cacheIdentifier);
+
+        if ($cacheContent) {
+            $content = (string)$cacheContent;
+        } else {
+            $urlUtility = GeneralUtility::makeInstance(Url::class);
+            $content = $urlUtility->fetch($url);
+            if ($content !== '') {
+                // @todo allow for custom cache lifetime
+                $cacheTags = ['sierrha'];
+                if ($this->pageUid > 0) {
+                    // cache tag "pageId_" ensures that cache is purged when content of 404 page changes
+                    $cacheTags[] = 'pageId_' . $this->pageUid;
+                }
+                $cache->set($cacheIdentifier, $content, $cacheTags);
+            }
+        }
+
+        if ($content === '') {
+            $languageService = $this->getLanguageService();
+            $content = GeneralUtility::makeInstance(ErrorPageController::class)->errorAction(
+                $languageService->sL('LLL:EXT:sierrha/Resources/Private/Language/locallang.xlf:' . static::KEY_PREFIX . 'Title'),
+                $languageService->sL('LLL:EXT:sierrha/Resources/Private/Language/locallang.xlf:' . static::KEY_PREFIX . 'Details')
+            );
+        }
+
+        return $content;
     }
 
     /**

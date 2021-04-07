@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Plan2net\Sierrha\Error;
 
 /*
- * Copyright 2019 plan2net GmbH
+ * Copyright 2019-2021 plan2net GmbH
  * 
  * It is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License, either version 2
@@ -14,7 +14,6 @@ namespace Plan2net\Sierrha\Error;
  * LICENSE.txt file that was distributed with this source code.
  */
 
-use Plan2net\Sierrha\Utility\Url;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Context\Context;
@@ -34,6 +33,7 @@ use TYPO3\CMS\Frontend\Page\PageAccessFailureReasons;
  */
 class StatusForbiddenHandler extends BaseHandler
 {
+    const KEY_PREFIX = 'noPermissions';
 
     /**
      * @param ServerRequestInterface $request
@@ -92,8 +92,7 @@ class StatusForbiddenHandler extends BaseHandler
                     throw new ImmediateResponseException($response);
                 }
                 $resolvedUrl = $this->resolveUrl($request, $this->handlerConfiguration['tx_sierrha_noPermissionsContentSource']);
-                $urlUtility = GeneralUtility::makeInstance(Url::class);
-                $response = new HtmlResponse($urlUtility->fetchWithFallback($resolvedUrl, 'noPermissionsTitle', 'noPermissionsDetails'));
+                $response = new HtmlResponse($this->fetchUrl($resolvedUrl));
             } else {
                 $resolvedUrl = $this->resolveUrl($request, $this->handlerConfiguration['tx_sierrha_loginPage']);
                 $requestUri = (string)$request->getUri();
