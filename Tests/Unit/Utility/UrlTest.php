@@ -3,20 +3,19 @@
 namespace Plan2net\Sierrha\Tests\Error;
 
 use Plan2net\Sierrha\Utility\Url;
+use TYPO3\CMS\Core\Controller\ErrorPageController;
 use TYPO3\CMS\Core\Localization\LanguageService;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Http\Response;
-use TYPO3\CMS\Core\Controller\ErrorPageController;
 
-/**
- * @backupGlobals enabled
- */
 class UrlTest extends UnitTestCase
 {
 
     const ERROR_PAGE_CONTROLLER_CONTENT = 'FALLBACK ERROR TEXT';
+    const ERROR_PAGE_TITLE = '*** Error Title ***';
+    const ERROR_PAGE_MESSAGE = '*** Detailed error description. ***';
 
     /**
      * System Under Test
@@ -25,16 +24,21 @@ class UrlTest extends UnitTestCase
      */
     protected $sut;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->sut = new Url();
-
-        $languageServiceStub = $this->createMock(LanguageService::class);
-        $languageServiceStub->method('sL')->willReturn('lorem ipsum');
-        $GLOBALS['LANG'] = $languageServiceStub;
     }
 
-    protected function setupErrorPageControllerStub()
+    protected function createLanguageServiceStub(): LanguageService
+    {
+        $languageServiceStub = $this->createMock(LanguageService::class);
+        $languageServiceStub->method('sL')
+            ->willReturn(self::ERROR_PAGE_TITLE, self::ERROR_PAGE_MESSAGE);
+
+        return $languageServiceStub;
+    }
+
+    protected function setupErrorPageControllerStub(): void
     {
         $errorPageControllerStub = $this->getMockBuilder(ErrorPageController::class)
                                         ->disableOriginalConstructor()
@@ -44,7 +48,7 @@ class UrlTest extends UnitTestCase
         GeneralUtility::addInstance(ErrorPageController::class, $errorPageControllerStub);
     }
 
-    protected function setupRequestFactoryStub($response)
+    protected function setupRequestFactoryStub($response): void
     {
         $requestFactoryStub = $this->getMockBuilder(RequestFactory::class)
             ->getMock();
@@ -65,51 +69,60 @@ class UrlTest extends UnitTestCase
     /**
      * @test
      */
-    public function httpErrorOnFetchingUrlIsDetected()
+    public function httpErrorOnFetchingUrlIsHandledGracefully(): void
     {
+        $this->setupRequestFactoryStub(new Response($this->buildResponseBody('SERVER ERROR TEXT'), 500)); // anything but 200
         $this->setupErrorPageControllerStub();
 
-        $this->setupRequestFactoryStub(new Response($this->buildResponseBody('SERVER ERROR TEXT'), 500)); // anything but 200
-
-        $result = $this->sut->fetchWithFallback('http://foo.bar/', '', '');
+        $result = $this->sut->fetchWithFallback('http://foo.bar/', $this->createLanguageServiceStub(), '');
         $this->assertEquals(self::ERROR_PAGE_CONTROLLER_CONTENT, $result);
     }
 
     /**
      * @test
      */
-    public function emptyContentOfFetchedUrlIsDetected()
+    public function emptyContentOfFetchedUrlIsHandledGracefully(): void
     {
+        $this->setupRequestFactoryStub(new Response()); // will return an empty string
         $this->setupErrorPageControllerStub();
 
+        $result = $this->sut->fetchWithFallback('http://foo.bar/', $this->createLanguageServiceStub(), '');
+        $this->assertEquals(self::ERROR_PAGE_CONTROLLER_CONTENT, $result);
+    }
+
+    /**
+     * @test
+     */
+    public function unusableContentOfFetchedUrlIsHandledGracefully(): void
+    {
+        $this->setupRequestFactoryStub(new Response($this->buildResponseBody(' <h1> </h1> <!-- empty --> ')));
+        $this->setupErrorPageControllerStub();
+
+        $result = $this->sut->fetchWithFallback('http://foo.bar/', $this->createLanguageServiceStub(), '');
+        $this->assertEquals(self::ERROR_PAGE_CONTROLLER_CONTENT, $result);
+    }
+
+    /**
+     * @test
+     */
+    public function fallbackPageIsReturnedOnError(): void
+    {
         $this->setupRequestFactoryStub(new Response()); // will return an empty string
 
-        $result = $this->sut->fetchWithFallback('http://foo.bar/', '', '');
-        $this->assertEquals(self::ERROR_PAGE_CONTROLLER_CONTENT, $result);
+        $result = $this->sut->fetchWithFallback('http://foo.bar/', $this->createLanguageServiceStub(), '');
+        $this->assertStringContainsString('<title>' . self::ERROR_PAGE_TITLE . '</title>', $result);
+        $this->assertStringContainsString(self::ERROR_PAGE_MESSAGE, $result);
     }
 
     /**
      * @test
      */
-    public function unusableContentOfFetchedUrlIsDetected()
-    {
-        $this->setupErrorPageControllerStub();
-
-        $this->setupRequestFactoryStub(new Response($this->buildResponseBody(' <h1> </h1> ')));
-
-        $result = $this->sut->fetchWithFallback('http://foo.bar/', '', '');
-        $this->assertEquals(self::ERROR_PAGE_CONTROLLER_CONTENT, $result);
-    }
-
-    /**
-     * @test
-     */
-    public function usableContentOfFetchedUrlIsReturned()
+    public function usableContentOfFetchedUrlIsReturned(): void
     {
         $errorPageContent = 'CUSTOM ERROR PAGE TEXT';
         $this->setupRequestFactoryStub(new Response($this->buildResponseBody($errorPageContent)));
 
-        $result = $this->sut->fetchWithFallback('http://foo.bar/', '', '');
+        $result = $this->sut->fetchWithFallback('http://foo.bar/', $this->createLanguageServiceStub(), '');
         $this->assertEquals($errorPageContent, $result);
     }
 }

@@ -14,9 +14,11 @@ namespace Plan2net\Sierrha\Error;
  * LICENSE.txt file that was distributed with this source code.
  */
 
+use Plan2net\Sierrha\Utility\Url;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Http\HtmlResponse;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * An error handler that shows content from a page expect for web resource requests (eg CSS).
@@ -46,12 +48,17 @@ class StatusNotFoundHandler extends BaseHandler
             }
 
             // don't show pretty error page for web resources
-            if (!empty($this->extensionConfiguration['resourceExtensionRegexp']
-                && preg_match('/\.(?:'.$this->extensionConfiguration['resourceExtensionRegexp'].')$/', $request->getUri()->getPath()))) {
+            if (!empty($this->extensionConfiguration['resourceExtensionRegexp'])
+                && preg_match('/\.(?:'.$this->extensionConfiguration['resourceExtensionRegexp'].')$/', $request->getUri()->getPath())) {
                 $content = $this->getLanguageService()->sL('LLL:EXT:sierrha/Resources/Private/Language/locallang.xlf:resourceNotFound');
             } else {
-                $resolvedUrl = $this->resolveUrl($request, $this->handlerConfiguration['tx_sierrha_notFoundContentSource']);
-                $content = $this->fetchUrl($resolvedUrl);
+                $urlUtility = GeneralUtility::makeInstance(Url::class);
+                [
+                    'url' => $resolvedUrl,
+                    'typo3language' => $this->typo3Language,
+                    'pageUid' => $pageUid
+                ] = $urlUtility->resolve($request, $this->handlerConfiguration['tx_sierrha_notFoundContentSource']);
+                $content = $this->fetchUrl($resolvedUrl, $pageUid);
             }
         } catch (\Exception $e) {
             $content = $this->handleInternalFailure($message, $e);
