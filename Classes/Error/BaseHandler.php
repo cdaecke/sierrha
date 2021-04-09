@@ -74,9 +74,11 @@ abstract class BaseHandler implements PageErrorHandlerInterface
      * Fetches content of URL, returns fallback on error.
      *
      * @param string $url
+     * @param int $pageUid
      * @return string
+     * @throws \TYPO3\CMS\Core\Cache\Exception\NoSuchCacheException
      */
-    protected function fetchUrl(string $url, $pageUid = 0): string
+    protected function fetchUrl(string $url, int $pageUid = 0): string
     {
         $cache = GeneralUtility::makeInstance(CacheManager::class)->getCache(static::CACHE_IDENTIFIER);
         $cacheIdentifier = 'sierrha_' . static::KEY_PREFIX . '_' . md5($url);
@@ -92,7 +94,7 @@ abstract class BaseHandler implements PageErrorHandlerInterface
                 $cacheTags = ['sierrha'];
                 if ($pageUid > 0) {
                     // cache tag "pageId_" ensures that cache is purged when content of 404 page changes
-                    $cacheTags[] = 'pageId_' . $this->pageUid;
+                    $cacheTags[] = 'pageId_' . $pageUid;
                 }
                 $cache->set($cacheIdentifier, $content, $cacheTags);
             }
