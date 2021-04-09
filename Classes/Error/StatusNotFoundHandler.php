@@ -29,8 +29,8 @@ class StatusNotFoundHandler extends BaseHandler
 
     /**
      * @param ServerRequestInterface $request
-     * @param string                 $message
-     * @param array                  $reasons
+     * @param string $message
+     * @param array $reasons
      * @return ResponseInterface
      * @throws \Exception
      */
@@ -49,7 +49,7 @@ class StatusNotFoundHandler extends BaseHandler
 
             // don't show pretty error page for web resources
             if (!empty($this->extensionConfiguration['resourceExtensionRegexp'])
-                && preg_match('/\.(?:'.$this->extensionConfiguration['resourceExtensionRegexp'].')$/', $request->getUri()->getPath())) {
+                && preg_match('/\.(?:' . $this->extensionConfiguration['resourceExtensionRegexp'] . ')$/', $request->getUri()->getPath())) {
                 $content = $this->getLanguageService()->sL('LLL:EXT:sierrha/Resources/Private/Language/locallang.xlf:resourceNotFound');
             } else {
                 $urlUtility = GeneralUtility::makeInstance(Url::class);

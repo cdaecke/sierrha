@@ -34,8 +34,8 @@ class StatusForbiddenHandler extends BaseHandler
 
     /**
      * @param ServerRequestInterface $request
-     * @param string                 $message
-     * @param array                  $reasons
+     * @param string $message
+     * @param array $reasons
      * @return ResponseInterface
      * @throws \Exception
      */
@@ -57,7 +57,7 @@ class StatusForbiddenHandler extends BaseHandler
 
     /**
      * @param ServerRequestInterface $request
-     * @param string                 $message
+     * @param string $message
      * @return ResponseInterface
      * @throws \Exception
      */
@@ -108,7 +108,7 @@ class StatusForbiddenHandler extends BaseHandler
                     [rawurlencode($requestUri), rawurlencode(base64_encode($requestUri))],
                     $this->handlerConfiguration['tx_sierrha_loginUrlParameter']
                 );
-                $response = new RedirectResponse($resolvedUrl.(strpos($resolvedUrl, '?') === false ? '?' : '&').$loginParameters);
+                $response = new RedirectResponse($resolvedUrl . (strpos($resolvedUrl, '?') === false ? '?' : '&') . $loginParameters);
             }
         } catch (ImmediateResponseException $e) {
             throw $e;

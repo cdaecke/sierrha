@@ -33,7 +33,7 @@ class Url
      * Resolve TYPO3 style URL into real world URL, replace language markers for external URL.
      *
      * @param ServerRequestInterface $request
-     * @param string                 $typoLinkUrl
+     * @param string $typoLinkUrl
      * @return array
      * @throws \TYPO3\CMS\Core\Routing\InvalidRouteArgumentsException
      */

@@ -8,9 +8,9 @@ A set of error handlers that extends TYPO3's default site error handling (work i
 
 Shows content from a page or external URL.
 
-If the resource is unavailable or the content is empty, a message in the standard TYPO3 error layout is shown.  
+If the resource is unavailable or the content is empty, a message in the standard TYPO3 error layout is shown.
 
-When the requested URL denotes a web resource (eg a CSS file) only a small response is sent to save bandwidth 
+When the requested URL denotes a web resource (eg a CSS file) only a small response is sent to save bandwidth
 ("Regular expression for resource file extensions", see [Extension Manager Configuration][em]).
 
 The file extensions to be treated by default as web resources:
@@ -26,10 +26,10 @@ The file extensions to be treated by default as web resources:
 
 Redirects to a login URL if access to page without a session is not permitted.
 
-If the user is already logged in, but has no access because of missing group rights he will be optionally
-redirected to a fallback page ("Show Content from Page on Missing Permissions", see [Site Configuration][site]).
+If the user is already logged in, but has no access because of missing group rights he will be optionally redirected to
+a fallback page ("Show Content from Page on Missing Permissions", see [Site Configuration][site]).
 
-In any other case a 404 "not found" error is triggered. TYPO3 will invoke the configured error handler. 
+In any other case a 404 "not found" error is triggered. TYPO3 will invoke the configured error handler.
 
 ## Caching
 
@@ -45,7 +45,7 @@ then the cache is invalidated automatically if the page content changes.
 
 ## Installation
 
-Add via composer.json: 
+Add via composer.json:
 
 ```
 "require": {
@@ -65,9 +65,9 @@ This is the default regular expression.
 
 _Enable Debug Mode_:
 
-In case of configuration errors a detailed error will be shown when in _debug mode_ or
-if the HTTP request comes from an IP listed in `$GLOBALS['TYPO3_CONF_VARS']['SYS']['devIPmask']`.
-Otherwise, the error will be passed on to be handled by TYPO3.
+In case of configuration errors a detailed error will be shown when in _debug mode_ or if the HTTP request comes from an
+IP listed in `$GLOBALS['TYPO3_CONF_VARS']['SYS']['devIPmask']`. Otherwise, the error will be passed on to be handled by
+TYPO3.
 
 ## Site Configuration
 
@@ -101,7 +101,7 @@ _Note:_ The parameter for the login page used by the extension "felogin" is `ret
 
 ### URL Markers
 
-The return parameter of the URL supports marker substitution.  
+The return parameter of the URL supports marker substitution.
 
 Marker | Description
 ------ | -----------
@@ -118,12 +118,13 @@ Marker | Description
 * 0.3.5 Don't fetch error page twice
 * 0.3.4 Set as compatible with v10 LTS
 * 0.3.3
-  * Add fallbacks for missing error content
-  * Do not throw exceptions in case of configuration errors by default
+    * Add fallbacks for missing error content
+    * Do not throw exceptions in case of configuration errors by default
 * 0.3.2 Add eot, ttf and woff/woff2 to the list of web resources
-* 0.3.0 Show error page for 404 status; send only a small 404 response for missing web resources 
-* 0.2.0 Show error page on missing permission for current login  
+* 0.3.0 Show error page for 404 status; send only a small 404 response for missing web resources
+* 0.2.0 Show error page on missing permission for current login
 * 0.1.0 Redirect to login page
 
 [em]: #extension-manager-configuration
+
 [site]: #site-configuration

@@ -4,11 +4,11 @@ namespace Plan2net\Sierrha\Tests\Error;
 
 use Plan2net\Sierrha\Utility\Url;
 use TYPO3\CMS\Core\Controller\ErrorPageController;
-use TYPO3\CMS\Core\Localization\LanguageService;
-use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Http\Response;
+use TYPO3\CMS\Core\Localization\LanguageService;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
 class UrlTest extends UnitTestCase
 {
@@ -41,10 +41,10 @@ class UrlTest extends UnitTestCase
     protected function setupErrorPageControllerStub(): void
     {
         $errorPageControllerStub = $this->getMockBuilder(ErrorPageController::class)
-                                        ->disableOriginalConstructor()
-                                        ->getMock();
+            ->disableOriginalConstructor()
+            ->getMock();
         $errorPageControllerStub->method('errorAction')
-                                ->willReturn(self::ERROR_PAGE_CONTROLLER_CONTENT);
+            ->willReturn(self::ERROR_PAGE_CONTROLLER_CONTENT);
         GeneralUtility::addInstance(ErrorPageController::class, $errorPageControllerStub);
     }
 

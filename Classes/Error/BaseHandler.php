@@ -54,11 +54,11 @@ abstract class BaseHandler implements PageErrorHandlerInterface
      */
     protected $typo3Language = 'default';
 
-	/**
-	 * @param int $statusCode
-	 * @param array $configuration
-	 */
-	public function __construct(int $statusCode, array $configuration)
+    /**
+     * @param int $statusCode
+     * @param array $configuration
+     */
+    public function __construct(int $statusCode, array $configuration)
     {
         $this->statusCode = $statusCode;
         $this->handlerConfiguration = $configuration;
@@ -68,7 +68,7 @@ abstract class BaseHandler implements PageErrorHandlerInterface
             // @todo log configuration error
             $this->extensionConfiguration = [];
         }
-	}
+    }
 
     /**
      * Fetches content of URL, returns fallback on error.
