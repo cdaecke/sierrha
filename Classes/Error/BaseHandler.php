@@ -32,7 +32,8 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 abstract class BaseHandler implements PageErrorHandlerInterface
 {
     const CACHE_IDENTIFIER = 'pages';
-    const KEY_PREFIX = '';
+    const CACHE_TIME = null; // null = default
+    const KEY_PREFIX = ''; // for cache and translations
 
     /**
      * @var int
@@ -96,7 +97,7 @@ abstract class BaseHandler implements PageErrorHandlerInterface
                     // cache tag "pageId_" ensures that cache is purged when content of 404 page changes
                     $cacheTags[] = 'pageId_' . $pageUid;
                 }
-                $cache->set($cacheIdentifier, $content, $cacheTags);
+                $cache->set($cacheIdentifier, $content, $cacheTags, static::CACHE_TIME);
             }
         }
 
