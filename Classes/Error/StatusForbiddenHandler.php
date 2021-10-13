@@ -101,7 +101,7 @@ class StatusForbiddenHandler extends BaseHandler
                 );
                 $response = new HtmlResponse($this->fetchUrl($resolvedUrl, $pageUid));
             } else {
-                ['url' => $resolvedUrl] = $this->resolveUrl($request, $this->handlerConfiguration['tx_sierrha_loginPage']);
+                ['url' => $resolvedUrl] = $urlUtility->resolve($request, $this->handlerConfiguration['tx_sierrha_loginPage']);
                 $requestUri = (string)$request->getUri();
                 $loginParameters = str_replace(
                     ['###URL###', '###URL_BASE64###'],
